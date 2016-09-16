@@ -29,18 +29,21 @@ struct huffNode
 		this->right = R;
 	}
 
-	bool friend operator>(const huffNode& A,const huffNode& B)
+	bool friend operator> (const huffNode& n1,const huffNode& n2)
 	{
-		return (A.frequency > B.frequency);
+		return (n1.frequency > n2.frequency);
 	}
 };
 
-void inOrderTrav(huffNode *root)
+void generateEncodings(huffNode *root, string encoding, string encodingTable[256]) //need to adjust this function to not build a string but instead a bitstring
 {
 	if (root != NULL) {
-		inOrderTrav(root->left);
-		cout << root->frequency << endl;
-		inOrderTrav(root->right);
+		if (root->character != -1)
+		{
+			encodingTable[root->character] = encoding;
+		}
+		generateEncodings(root->left,(encoding + '0'),encodingTable);
+		generateEncodings(root->right,(encoding + '1'),encodingTable);
 	}
 }
 
@@ -82,6 +85,14 @@ void initializeFrequencyList(int frequencyList[256])
 		frequencyList[i] = 0;
 }
 
+void initializeEncodingTable(string encodingTable[256])
+{
+	for (int i = 0; i < 256; i++)
+	{
+		encodingTable[i] = "";
+	}
+}
+
 void generateFrequencyList(ifstream& fin, int frequencyList[256])
 {
 	string line = "";
@@ -109,13 +120,24 @@ void printFrequencyList(int frequencyList[256])
 	}
 }
 
+void printEncodings(string table[256])
+{
+	for (int i = 0; i < 256; i++)
+	{
+		if (table[i] != "")
+		{
+			cout << "Character " << (char)i << " encoding: " << table[i] << endl;
+		}
+	}
+}
+
 void generateHuffmanTree(priority_queue <huffNode*, vector<huffNode*>, greater<huffNode*>> &heap)
 {
 	if (heap.size() <= 1)
 		return;
 	else
 	{
-		huffNode temp1, temp2;
+		//huffNode temp1, temp2;
 		huffNode *node1, *node2;
 
 		node1 = heap.top();
@@ -157,6 +179,7 @@ int main(int argc, char* argv[])
 			ofstream fout(outFileName, ios::binary | ios::out);
 			int frequencyList[256];
 			priority_queue<huffNode*, vector<huffNode*>, greater<huffNode*> > nodeHeap;
+			string encodingTable[256]; //need to change this from a string to a bit sort of data structure
 
 			initializeFrequencyList(frequencyList);
 			generateFrequencyList(fin, frequencyList);
@@ -169,6 +192,11 @@ int main(int argc, char* argv[])
 			huffNode *root;
 			root = nodeHeap.top();
 			nodeHeap.pop();
+
+			//create the encoding for each leaf node (character)
+			initializeEncodingTable(encodingTable);
+			generateEncodings(root, "", encodingTable);
+			printEncodings(encodingTable);
 
 			//run the compression algorithm
 
