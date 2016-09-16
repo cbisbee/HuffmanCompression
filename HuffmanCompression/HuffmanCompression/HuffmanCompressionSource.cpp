@@ -35,19 +35,33 @@ struct huffNode
 	}
 };
 
-void generateInitialPQueue(int frequencyList[256], priority_queue<huffNode, vector<huffNode>, greater<huffNode>>& nodeHeap)
+void inOrderTrav(huffNode *root)
+{
+	if (root != NULL) {
+		inOrderTrav(root->left);
+		cout << root->frequency << endl;
+		inOrderTrav(root->right);
+	}
+}
+
+void generateInitialPQueue(int frequencyList[256], priority_queue<huffNode*, vector<huffNode*>, greater<huffNode*>> &nodeHeap)
 {
 	for (int i = 0; i < 256; i++)
 	{
 		if (frequencyList[i] != 0)
 		{
-			huffNode tempNode(frequencyList[i], (char)i, NULL, NULL);// = new huffNode;
+			huffNode* tempNode;
+			tempNode = new huffNode;
+			tempNode->frequency=frequencyList[i];
+			tempNode->character = (char)i;
+			tempNode->left = NULL;
+			tempNode->right = NULL;
 			nodeHeap.push(tempNode);
 		}
 	}
 }
 
-void printPQueue(priority_queue<huffNode, vector<huffNode>, greater<huffNode>> nodeHeap)
+void printPQueue(priority_queue<huffNode, vector<huffNode>, greater<huffNode>> &nodeHeap)
 {
 	if (nodeHeap.empty())
 	{
@@ -95,6 +109,34 @@ void printFrequencyList(int frequencyList[256])
 	}
 }
 
+void generateHuffmanTree(priority_queue <huffNode*, vector<huffNode*>, greater<huffNode*>> &heap)
+{
+	if (heap.size() <= 1)
+		return;
+	else
+	{
+		huffNode temp1, temp2;
+		huffNode *node1, *node2;
+
+		node1 = heap.top();
+		heap.pop();
+		node2 = heap.top();
+		heap.pop();
+		int totalFreq = node1->frequency + node2->frequency;
+
+		huffNode* newNode;
+		newNode = new huffNode;
+		newNode->frequency = totalFreq;
+		newNode->character = (char)255;
+		newNode->left = node1;
+		newNode->right = node2;
+
+		heap.push(newNode);
+		totalFreq = 0;
+		generateHuffmanTree(heap);
+	}
+}
+
 int main(int argc, char* argv[])
 {
 	if (argc != 2)
@@ -114,20 +156,19 @@ int main(int argc, char* argv[])
 			string outFileName = inFileName.substr(0, inFileName.length() - 3) + "mcp"; //assumes a .txt file (changes output to a .mcp) 
 			ofstream fout(outFileName, ios::binary | ios::out);
 			int frequencyList[256];
-			priority_queue<huffNode, vector<huffNode>, greater<huffNode> > nodeHeap;
+			priority_queue<huffNode*, vector<huffNode*>, greater<huffNode*> > nodeHeap;
 
 			initializeFrequencyList(frequencyList);
 			generateFrequencyList(fin, frequencyList);
-			//printFrequencyList(frequencyList);
+			printFrequencyList(frequencyList);
 			generateInitialPQueue(frequencyList, nodeHeap);
 			//printPQueue(nodeHeap);
+			//cout << nodeHeap.size();
+			generateHuffmanTree(nodeHeap);
 
-
-			//read the file, get all characters and counts of 
-
-			//make create frequency list
-
-			//create huffman tree
+			huffNode *root;
+			root = nodeHeap.top();
+			nodeHeap.pop();
 
 			//run the compression algorithm
 
