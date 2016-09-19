@@ -22,15 +22,20 @@ struct node_comparison
 	}
 };
 
-void generateEncodings(huffNode *root, string encoding, string encodingTable[256]) //need to adjust this function to not build a string but instead a bitstring
+void generateEncodings(huffNode *root, vector<bool> & encoding, vector<vector<bool>> & encodingTable)
 {
 	if (root != NULL) {
 		if (root->character != -1)
 		{
 			encodingTable[root->character] = encoding;
 		}
-		generateEncodings(root->left,(encoding + '0'),encodingTable);
-		generateEncodings(root->right,(encoding + '1'),encodingTable);
+		vector<bool> leftEncoding = encoding;
+		leftEncoding.push_back(false);
+		vector<bool> rightEncoding = encoding;
+		rightEncoding.push_back(false);
+
+		generateEncodings(root->left,leftEncoding,encodingTable);
+		generateEncodings(root->right,rightEncoding,encodingTable);
 	}
 }
 
@@ -72,14 +77,6 @@ void initializeFrequencyList(int frequencyList[256])
 		frequencyList[i] = 0;
 }
 
-void initializeEncodingTable(string encodingTable[256])
-{
-	for (int i = 0; i < 256; i++)
-	{
-		encodingTable[i] = "";
-	}
-}
-
 void generateFrequencyList(ifstream& fin, int frequencyList[256])
 {
 	string line = "";
@@ -106,13 +103,24 @@ void printFrequencyList(int frequencyList[256])
 	}
 }
 
-void printEncodings(string table[256])
+void getEncoding(vector<bool> bitString, string &encoding)
 {
+	for (int i = 0; i < bitString.size(); i++)
+	{
+		encoding += bitString[i];
+	}
+}
+
+void printEncodings(vector<vector<bool>> encodingTable)//vector<bool> encodingTable[256])
+{
+	string encoding = "";
 	for (int i = 0; i < 256; i++)
 	{
-		if (table[i] != "")
+		if (!(encodingTable[i].empty()))
 		{
-			cout << "Character " << (char)i << " encoding: " << table[i] << endl;
+			getEncoding(encodingTable[i], encoding);
+			cout << "Character " << (char)i << " encoding: " << encoding << endl;
+			encoding = "";
 		}
 	}
 }
@@ -166,11 +174,13 @@ int main(int argc, char* argv[])
 			ofstream fout(outFileName, ios::binary | ios::out);
 			int frequencyList[256];
 			priority_queue<huffNode*, vector<huffNode*>, node_comparison> nodeHeap;
-			string encodingTable[256]; //need to change this from a string to a bit sort of data structure
+			vector<bool> startEncoding;
+			vector<vector<bool>> encodingTable(256, vector<bool>(0));
+
 
 			initializeFrequencyList(frequencyList);
 			generateFrequencyList(fin, frequencyList);
-			printFrequencyList(frequencyList);
+			//printFrequencyList(frequencyList);
 			generateInitialPQueue(frequencyList, nodeHeap);
 			generateHuffmanTree(nodeHeap);
 
@@ -179,9 +189,8 @@ int main(int argc, char* argv[])
 			nodeHeap.pop();
 
 			//create the encoding for each leaf node (character)
-			initializeEncodingTable(encodingTable);
-			generateEncodings(root, "", encodingTable);
-			printEncodings(encodingTable);
+			generateEncodings(root, startEncoding, encodingTable);
+			//printEncodings(encodingTable);
 
 			//run the compression algorithm
 
