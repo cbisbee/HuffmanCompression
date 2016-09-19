@@ -12,26 +12,13 @@ struct huffNode
 	char character;
 	huffNode* left;
 	huffNode* right;
+};
 
-	huffNode()
+struct node_comparison
+{
+	bool operator () (const huffNode* A, const huffNode* B) const
 	{
-		this->frequency = -1;
-		this->character = '?';
-		this->left = NULL;
-		this->right = NULL;
-	}
-
-	huffNode(int freq, char ch,  huffNode* L, huffNode* R)
-	{
-		this->frequency = freq;
-		this->character = ch;
-		this->left = L;
-		this->right = R;
-	}
-
-	bool friend operator> (const huffNode& n1,const huffNode& n2)
-	{
-		return (n1.frequency > n2.frequency);
+		return A->frequency > B->frequency;
 	}
 };
 
@@ -47,7 +34,7 @@ void generateEncodings(huffNode *root, string encoding, string encodingTable[256
 	}
 }
 
-void generateInitialPQueue(int frequencyList[256], priority_queue<huffNode*, vector<huffNode*>, greater<huffNode*>> &nodeHeap)
+void generateInitialPQueue(int frequencyList[256], priority_queue<huffNode*, vector<huffNode*>, node_comparison> &nodeHeap)
 {
 	for (int i = 0; i < 256; i++)
 	{
@@ -64,7 +51,7 @@ void generateInitialPQueue(int frequencyList[256], priority_queue<huffNode*, vec
 	}
 }
 
-void printPQueue(priority_queue<huffNode, vector<huffNode>, greater<huffNode>> &nodeHeap)
+void printPQueue(priority_queue<huffNode*, vector<huffNode*>, node_comparison> &nodeHeap)
 {
 	if (nodeHeap.empty())
 	{
@@ -72,9 +59,9 @@ void printPQueue(priority_queue<huffNode, vector<huffNode>, greater<huffNode>> &
 	}
 	while (!nodeHeap.empty())
 	{
-		huffNode tempNode;
+		huffNode* tempNode;
 		tempNode = nodeHeap.top();
-		cout << tempNode.character << endl;
+		cout << tempNode->character << endl;
 		nodeHeap.pop();
 	}
 }
@@ -115,7 +102,6 @@ void printFrequencyList(int frequencyList[256])
 		if (frequencyList[i] != 0)
 		{
 			cout << "Character " << (char)i << ": " << frequencyList[i] << endl;
-			//cout << "ASCII " << i << ": " << frequencyList[i] << endl;
 		}
 	}
 }
@@ -131,14 +117,15 @@ void printEncodings(string table[256])
 	}
 }
 
-void generateHuffmanTree(priority_queue <huffNode*, vector<huffNode*>, greater<huffNode*>> &heap)
+void generateHuffmanTree(priority_queue <huffNode*, vector<huffNode*>, node_comparison> &heap)
 {
 	if (heap.size() <= 1)
 		return;
 	else
 	{
-		//huffNode temp1, temp2;
 		huffNode *node1, *node2;
+		node1 = new huffNode;
+		node2 = new huffNode;
 
 		node1 = heap.top();
 		heap.pop();
@@ -178,15 +165,13 @@ int main(int argc, char* argv[])
 			string outFileName = inFileName.substr(0, inFileName.length() - 3) + "mcp"; //assumes a .txt file (changes output to a .mcp) 
 			ofstream fout(outFileName, ios::binary | ios::out);
 			int frequencyList[256];
-			priority_queue<huffNode*, vector<huffNode*>, greater<huffNode*> > nodeHeap;
+			priority_queue<huffNode*, vector<huffNode*>, node_comparison> nodeHeap;
 			string encodingTable[256]; //need to change this from a string to a bit sort of data structure
 
 			initializeFrequencyList(frequencyList);
 			generateFrequencyList(fin, frequencyList);
 			printFrequencyList(frequencyList);
 			generateInitialPQueue(frequencyList, nodeHeap);
-			//printPQueue(nodeHeap);
-			//cout << nodeHeap.size();
 			generateHuffmanTree(nodeHeap);
 
 			huffNode *root;
