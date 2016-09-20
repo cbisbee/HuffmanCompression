@@ -1,8 +1,9 @@
 #include <iostream>
 #include <fstream>
 #include <string>
-#include <functional>
 #include <queue>
+#include <vector>
+#include <bitset>
 
 using namespace std;
 
@@ -32,7 +33,7 @@ void generateEncodings(huffNode *root, vector<bool> & encoding, vector<vector<bo
 		vector<bool> leftEncoding = encoding;
 		leftEncoding.push_back(false);
 		vector<bool> rightEncoding = encoding;
-		rightEncoding.push_back(false);
+		rightEncoding.push_back(true);
 
 		generateEncodings(root->left,leftEncoding,encodingTable);
 		generateEncodings(root->right,rightEncoding,encodingTable);
@@ -154,6 +155,57 @@ void generateHuffmanTree(priority_queue <huffNode*, vector<huffNode*>, node_comp
 	}
 }
 
+void convertBuffer(vector<bool> & ogBuffer, bitset<8> &newBuffer)
+{
+	for (int i = 0; i < ogBuffer.size(); i++)
+	{
+		newBuffer[i] = ogBuffer[i];
+	}
+}
+
+void checkBuffer(vector<bool> & bitBuffer, vector<bool> & encoding, ofstream &fout)
+{
+	while (encoding.size() != 0 )
+	{
+		if ((bitBuffer.size() + encoding.size()) >= 8) {
+			int availableSpace = 8 - bitBuffer.size();
+			for (int i = 0; i < availableSpace; i++)
+			{
+				bitBuffer.push_back(encoding[0]);
+				encoding.erase(encoding.begin());
+			}
+			//convert vector<bool> to bitbuffer for output
+			bitset<8> outputBuffer;
+			convertBuffer(bitBuffer, outputBuffer);
+			unsigned char n = outputBuffer.to_ulong();
+			fout << n;
+			bitBuffer.clear();
+		}
+		cout << "You're Stuck" << endl;
+	}
+}
+
+void streamEncoding(ifstream &fin, ofstream &fout, vector<bool> & bitBuffer, vector<vector<bool>> encodingTable)
+{
+	string line = "";
+	vector<bool> currentEncoding;
+	while (!fin.eof())
+	{
+		getline(fin, line);
+		for (int i = 0; i < line.length(); i++)
+		{
+			currentEncoding = encodingTable[line[i]];
+			checkBuffer(bitBuffer, currentEncoding, fout);
+			while (!currentEncoding.empty())
+			{
+				bitBuffer.push_back(currentEncoding[0]);
+				currentEncoding.erase(currentEncoding.begin());
+			}
+		}
+		line = "";
+	}
+}
+
 int main(int argc, char* argv[])
 {
 	if (argc != 2)
@@ -176,10 +228,13 @@ int main(int argc, char* argv[])
 			priority_queue<huffNode*, vector<huffNode*>, node_comparison> nodeHeap;
 			vector<bool> startEncoding;
 			vector<vector<bool>> encodingTable(256, vector<bool>(0));
+			vector<bool> bitBuffer;
+			
 
 
 			initializeFrequencyList(frequencyList);
 			generateFrequencyList(fin, frequencyList);
+			fin.close();
 			//printFrequencyList(frequencyList);
 			generateInitialPQueue(frequencyList, nodeHeap);
 			generateHuffmanTree(nodeHeap);
@@ -193,9 +248,13 @@ int main(int argc, char* argv[])
 			//printEncodings(encodingTable);
 
 			//run the compression algorithm
+			fin.open(inFileName);
+			streamEncoding(fin, fout, bitBuffer, encodingTable);
 
 		}
 	}
+
+	cout << "Done." << endl;
 
 	cin.get();
 	cin.get();

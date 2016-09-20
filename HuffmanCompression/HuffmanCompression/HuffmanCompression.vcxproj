@@ -121,7 +121,11 @@
     <ClCompile Include="HuffmanCompressionSource.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <Text Include="..\Debug\USConstitution.txt" />
     <Text Include="testInput.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="testInput.mcp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
