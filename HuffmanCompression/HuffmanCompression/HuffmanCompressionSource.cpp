@@ -167,21 +167,27 @@ void checkBuffer(vector<bool> & bitBuffer, vector<bool> & encoding, ofstream &fo
 {
 	while (encoding.size() != 0 )
 	{
-		if ((bitBuffer.size() + encoding.size()) >= 8) {
 			int availableSpace = 8 - bitBuffer.size();
 			for (int i = 0; i < availableSpace; i++)
 			{
-				bitBuffer.push_back(encoding[0]);
-				encoding.erase(encoding.begin());
+				if (!encoding.empty())
+				{
+					bitBuffer.push_back(encoding[0]);
+					encoding.erase(encoding.begin());
+				}
 			}
-			//convert vector<bool> to bitbuffer for output
-			bitset<8> outputBuffer;
-			convertBuffer(bitBuffer, outputBuffer);
-			unsigned char n = outputBuffer.to_ulong();
-			fout << n;
-			bitBuffer.clear();
-		}
-		cout << "You're Stuck" << endl;
+
+			if (bitBuffer.size() == 8)
+			{
+				//convert vector<bool> to bitbuffer for output
+				bitset<8> outputBuffer;
+				convertBuffer(bitBuffer, outputBuffer);
+				unsigned char n = outputBuffer.to_ulong();
+				fout << n;
+				bitBuffer.clear();
+			}
+
+		//cout << "You're Stuck" << endl;
 	}
 }
 
