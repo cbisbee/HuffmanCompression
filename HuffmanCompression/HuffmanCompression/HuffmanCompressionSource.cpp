@@ -7,6 +7,9 @@
 
 using namespace std;
 
+string inFileName;
+int frequencyList[256];
+
 struct huffNode
 {
 	int frequency;
@@ -91,6 +94,7 @@ void generateFrequencyList(ifstream& fin, int frequencyList[256])
 		frequencyList[10] += 1;
 		line = "";
 	}
+	frequencyList[26] = 1;
 }
 
 void printFrequencyList(int frequencyList[256])
@@ -112,7 +116,7 @@ void getEncoding(vector<bool> bitString, string &encoding)
 	}
 }
 
-void printEncodings(vector<vector<bool>> encodingTable)//vector<bool> encodingTable[256])
+void printEncodings(vector<vector<bool>> encodingTable)
 {
 	string encoding = "";
 	for (int i = 0; i < 256; i++)
@@ -155,6 +159,17 @@ void generateHuffmanTree(priority_queue <huffNode*, vector<huffNode*>, node_comp
 	}
 }
 
+void streamFrequencyList(ofstream &fout)
+{
+	for (int i = 0; i < 256; i++)
+	{
+		if (frequencyList[i] != 0)
+		{
+			fout << i << ':' << frequencyList[i] << '!';
+		}
+	}
+}
+
 void convertBuffer(vector<bool> & ogBuffer, bitset<8> &newBuffer)
 {
 	for (int i = 0; i < ogBuffer.size(); i++)
@@ -186,13 +201,16 @@ void checkBuffer(vector<bool> & bitBuffer, vector<bool> & encoding, ofstream &fo
 				fout << n;
 				bitBuffer.clear();
 			}
-
-		//cout << "You're Stuck" << endl;
 	}
 }
 
 void streamEncoding(ifstream &fin, ofstream &fout, vector<bool> & bitBuffer, vector<vector<bool>> encodingTable)
 {
+	fout << "BIZCOMPRESS" << endl; //Printing "magic number
+	fout << inFileName << endl;
+	streamFrequencyList(fout); //need to output frequency list/table
+	fout << endl; 	
+
 	string line = "";
 	vector<bool> currentEncoding;
 	while (!fin.eof())
@@ -208,9 +226,22 @@ void streamEncoding(ifstream &fin, ofstream &fout, vector<bool> & bitBuffer, vec
 				currentEncoding.erase(currentEncoding.begin());
 			}
 		}
+		currentEncoding = encodingTable[10];
+		checkBuffer(bitBuffer, currentEncoding, fout);
+		while (!currentEncoding.empty())
+		{
+			bitBuffer.push_back(currentEncoding[0]);
+			currentEncoding.erase(currentEncoding.begin());
+		}
+
 		line = "";
 	}
+	currentEncoding = encodingTable[26];
+	checkBuffer(bitBuffer, currentEncoding, fout);
+	checkBuffer(bitBuffer, currentEncoding, fout);
+
 }
+
 
 int main(int argc, char* argv[])
 {
@@ -222,7 +253,7 @@ int main(int argc, char* argv[])
 	else
 	{
 		//argv[1] contains the filename to be provided
-		string inFileName = argv[1];
+		inFileName = argv[1];
 		ifstream fin(inFileName);
 		if (fin.fail())
 			cout << "Could not open target file, please rerun the program with a valid text file (.txt)." << endl;
@@ -230,7 +261,6 @@ int main(int argc, char* argv[])
 		{
 			string outFileName = inFileName.substr(0, inFileName.length() - 3) + "mcp"; //assumes a .txt file (changes output to a .mcp) 
 			ofstream fout(outFileName, ios::binary | ios::out);
-			int frequencyList[256];
 			priority_queue<huffNode*, vector<huffNode*>, node_comparison> nodeHeap;
 			vector<bool> startEncoding;
 			vector<vector<bool>> encodingTable(256, vector<bool>(0));
@@ -251,9 +281,7 @@ int main(int argc, char* argv[])
 
 			//create the encoding for each leaf node (character)
 			generateEncodings(root, startEncoding, encodingTable);
-			//printEncodings(encodingTable);
 
-			//run the compression algorithm
 			fin.open(inFileName);
 			streamEncoding(fin, fout, bitBuffer, encodingTable);
 

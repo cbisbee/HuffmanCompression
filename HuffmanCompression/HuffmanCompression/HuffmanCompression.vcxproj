@@ -125,6 +125,7 @@
     <Text Include="testInput.txt" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="..\Debug\USConstitution.mcp" />
     <None Include="testInput.mcp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
