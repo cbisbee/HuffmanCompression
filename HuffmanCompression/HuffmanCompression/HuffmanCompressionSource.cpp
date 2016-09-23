@@ -163,10 +163,7 @@ void streamFrequencyList(ofstream &fout)
 {
 	for (int i = 0; i < 256; i++)
 	{
-		if (frequencyList[i] != 0)
-		{
-			fout << i << ':' << frequencyList[i] << '!';
-		}
+			fout << i << endl << frequencyList[i] << endl;
 	}
 }
 
