@@ -206,7 +206,8 @@ void streamEncoding(ifstream &fin, ofstream &fout, vector<bool> & bitBuffer, vec
 	fout << "BIZCOMPRESS" << endl; //Printing "magic number
 	fout << inFileName << endl;
 	streamFrequencyList(fout); //need to output frequency list/table
-	fout << endl; 	
+	//fout << endl; 
+	fout << "Start" << endl;
 
 	string line = "";
 	vector<bool> currentEncoding;
@@ -223,17 +224,25 @@ void streamEncoding(ifstream &fin, ofstream &fout, vector<bool> & bitBuffer, vec
 				currentEncoding.erase(currentEncoding.begin());
 			}
 		}
-		currentEncoding = encodingTable[10];
-		checkBuffer(bitBuffer, currentEncoding, fout);
-		while (!currentEncoding.empty())
+		//manually adding the eol encoding after each line
+		if (!fin.eof())
 		{
-			bitBuffer.push_back(currentEncoding[0]);
-			currentEncoding.erase(currentEncoding.begin());
+			currentEncoding = encodingTable[10];
+			checkBuffer(bitBuffer, currentEncoding, fout);
+			while (!currentEncoding.empty())
+			{
+				bitBuffer.push_back(currentEncoding[0]);
+				currentEncoding.erase(currentEncoding.begin());
+			}
+
+			line = "";
 		}
 
-		line = "";
 	}
+	//manually adding the eof character after encoding whole file
 	currentEncoding = encodingTable[26];
+
+	//why do I have two? CHECK THIS
 	checkBuffer(bitBuffer, currentEncoding, fout);
 	checkBuffer(bitBuffer, currentEncoding, fout);
 
