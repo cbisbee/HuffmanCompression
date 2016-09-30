@@ -206,8 +206,6 @@ void streamEncoding(ifstream &fin, ofstream &fout, vector<bool> & bitBuffer, vec
 	fout << "BIZCOMPRESS" << endl; //Printing "magic number
 	fout << inFileName << endl;
 	streamFrequencyList(fout); //need to output frequency list/table
-	//fout << endl; 
-	fout << "Start" << endl;
 
 	string line = "";
 	vector<bool> currentEncoding;
@@ -234,20 +232,16 @@ void streamEncoding(ifstream &fin, ofstream &fout, vector<bool> & bitBuffer, vec
 				bitBuffer.push_back(currentEncoding[0]);
 				currentEncoding.erase(currentEncoding.begin());
 			}
-
 			line = "";
 		}
-
 	}
 	//manually adding the eof character after encoding whole file
 	currentEncoding = encodingTable[26];
 
-	//why do I have two? CHECK THIS
 	checkBuffer(bitBuffer, currentEncoding, fout);
 	checkBuffer(bitBuffer, currentEncoding, fout);
 
 }
-
 
 int main(int argc, char* argv[])
 {
@@ -258,8 +252,7 @@ int main(int argc, char* argv[])
 
 	else
 	{
-		//argv[1] contains the filename to be provided
-		inFileName = argv[1];
+		inFileName = argv[1]; //argv[1] contains the filename to be provided
 		ifstream fin(inFileName);
 		if (fin.fail())
 			cout << "Could not open target file, please rerun the program with a valid text file (.txt)." << endl;
@@ -272,8 +265,6 @@ int main(int argc, char* argv[])
 			vector<vector<bool>> encodingTable(256, vector<bool>(0));
 			vector<bool> bitBuffer;
 			
-
-
 			initializeFrequencyList(frequencyList);
 			generateFrequencyList(fin, frequencyList);
 			fin.close();
@@ -290,14 +281,8 @@ int main(int argc, char* argv[])
 
 			fin.open(inFileName);
 			streamEncoding(fin, fout, bitBuffer, encodingTable);
-
+			cout << "File succesfully compressed" << endl;
 		}
 	}
-
-	cout << "Done." << endl;
-
-	cin.get();
-	cin.get();
-
 	return 0;
 }
